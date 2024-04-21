@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Konsumen;
+use App\Models\Layanan;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -11,11 +12,18 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $order = Order::with(['konsumen'])->latest()->get();
+        $order = Order::with(['konsumen']);
+        $layanan = Layanan::latest()->get();
 
-        return view('order', compact('order'));
+        if ($request->filled('search') && $request->search != '') {
+            $order->where('kode', 'like', '%' . $request->search . '%');
+        }
+
+        $order = $order->simplePaginate(10);
+
+        return view('order', compact('order', 'request', 'layanan'));
     }
 
     /**
@@ -51,20 +59,23 @@ class OrderController extends Controller
                 'no_telp' => $request->no_telp
             ]);
 
+            $kode = 'LDY-' . $konsumen->id . date('dmy');
+
             $order = Order::create([
+                'kode' => $kode,
                 'konsumen_id' => $konsumen->id,
                 'layanan_id' => $request->layanan_id,
                 'total_harga' => $request->total_harga,
                 'jumlah' => $request->jumlah,
             ]);
         } else {
-            $konsumen = Konsumen::update([
+            $konsumen = Konsumen::find($request->id)->update([
                 'nama' => $request->nama,
                 'alamat' => $request->alamat,
                 'no_telp' => $request->no_telp,
             ]);
 
-            $order = Order::update([
+            $order = Order::find($request->id)->update([
                 'layanan_id' => $request->layanan_id,
                 'total_harga' => $request->total_harga,
                 'jumlah' => $request->jumlah,
@@ -74,7 +85,7 @@ class OrderController extends Controller
                 return redirect()->back()->with([
                     'status' => 'error',
                     'message' => 'Error Terjadi',
-                ]);
+                ])->withInput();
             }
         }
 

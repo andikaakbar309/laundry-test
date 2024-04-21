@@ -14,4 +14,7 @@ class Order extends Model
     public function konsumen() {
         return $this->belongsTo(Konsumen::class);
     }
+    public function layanan() {
+        return $this->belongsTo(Layanan::class);
+    }
 }

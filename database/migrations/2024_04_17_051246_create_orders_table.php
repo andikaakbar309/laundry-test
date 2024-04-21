@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id()->primary();
+            $table->string('kode')->unique();
             $table->foreignId('konsumen_id');
             $table->foreignId('layanan_id');
             $table->string('status_pembayaran')->default('belum_lunas')->nullable(); // belum lunas, lunas
